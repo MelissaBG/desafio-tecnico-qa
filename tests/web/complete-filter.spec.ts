@@ -1,22 +1,18 @@
 import { test, expect } from '@playwright/test';
+import { TodoPage } from './todo-page';
+
 test('marca tarefa como concluída e valida filtros', async ({ page }) => {
-  await page.goto('');
+  const todoPage = new TodoPage(page);
+  await todoPage.goto();
 
-  const newTodo = page.getByPlaceholder('What needs to be done?');
-  await newTodo.fill('Tarefa A');
-  await newTodo.press('Enter');
-  await newTodo.fill('Tarefa B');
-  await newTodo.press('Enter');
+  await todoPage.addTodo('Tarefa A');
+  await todoPage.addTodo('Tarefa B');
 
-  // marca "Tarefa A" como concluída
-  const todoA = page.getByTestId('todo-item').filter({ hasText: 'Tarefa A' });
-  await todoA.getByRole('checkbox').check();
+  await todoPage.completeTodo('Tarefa A');
 
-  // filtro Completed: só Tarefa A deve aparecer
-  await page.getByRole('link', { name: 'Completed' }).click();
-  await expect(page.getByTestId('todo-title')).toHaveText(['Tarefa A']);
+  await todoPage.filterBy('Completed');
+  await expect(todoPage.todoTitles).toHaveText(['Tarefa A']);
 
-  // filtro Active: só Tarefa B deve aparecer
-  await page.getByRole('link', { name: 'Active' }).click();
-  await expect(page.getByTestId('todo-title')).toHaveText(['Tarefa B']);
+  await todoPage.filterBy('Active');
+  await expect(todoPage.todoTitles).toHaveText(['Tarefa B']);
 });
