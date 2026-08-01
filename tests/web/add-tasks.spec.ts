@@ -1,22 +1,16 @@
 import { test, expect } from '@playwright/test';
+import { TodoPage } from './todo-page';
 
 test('adiciona duas tarefas e valida contador', async ({ page }) => {
-  await page.goto('');
+  const todoPage = new TodoPage(page);
+  await todoPage.goto();
 
-  const newTodo = page.getByPlaceholder('What needs to be done?');
+  await todoPage.addTodo('Comprar leite');
+  await todoPage.addTodo('Estudar Playwright');
 
-  await newTodo.fill('Comprar leite');
-  await newTodo.press('Enter');
-
-  await newTodo.fill('Estudar Playwright');
-  await newTodo.press('Enter');
-
-
-  await expect(page.getByTestId('todo-title')).toHaveText([
+  await expect(todoPage.todoTitles).toHaveText([
     'Comprar leite',
     'Estudar Playwright',
   ]);
-
- 
-  await expect(page.getByTestId('todo-count')).toHaveText('2 items left');
+  await expect(todoPage.todoCount).toHaveText('2 items left');
 });

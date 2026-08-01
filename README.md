@@ -1,5 +1,7 @@
 # Desafio Técnico QA — Automação Web + API com Playwright
 
+# Desafio Técnico QA — Automação Web + API com Playwright
+
 Automação de 2 fluxos Web (TodoMVC) e 2 fluxos de API (GitHub REST), usando **Playwright** + **TypeScript**.
 
 ## Stack
@@ -69,6 +71,7 @@ npx playwright show-report
 ```
 tests/
 ├── web/
+│   ├── todo-page.ts             # Page Object com as ações da página TodoMVC
 │   ├── add-tasks.spec.ts        # W1 — adicionar tarefas e validar contador
 │   └── complete-filter.spec.ts  # W2 — concluir tarefa e validar filtros
 └── api/
@@ -104,3 +107,4 @@ Marca uma tarefa como concluída e valida que ela aparece no filtro *Completed* 
 - **`page.goto('')` em vez de `page.goto('/')`**: como o `baseURL` do TodoMVC inclui um subcaminho com hash routing (`/todomvc/#/`), usar `'/'` faria o Playwright navegar para a raiz do domínio, ignorando esse subcaminho. String vazia preserva o `baseURL` completo.
 - **Validação de contrato, não de snapshot**: no teste de usuário válido, os campos do corpo são validados com `toHaveProperty` (existência do campo), não com `toEqual` (valor exato), já que dados como `public_repos` podem mudar com o tempo sem que isso represente uma quebra real da API.
 - **Sem autenticação na API do GitHub**: os testes usam a API pública sem token, conforme indicado no desafio. Isso está sujeito ao limite de 60 requisições/hora por IP.
+- **Page Object para os testes web**: a interação com o TodoMVC (adicionar tarefa, marcar como concluída, filtrar) foi extraída para a classe `TodoPage` (`tests/web/todo-page.ts`). Os arquivos `.spec.ts` chamam métodos de negócio (`addTodo`, `completeTodo`, `filterBy`) em vez de repetir locators e ações de baixo nível — isso elimina duplicação entre W1 e W2 e centraliza qualquer mudança futura na estrutura da página em um único lugar. As asserções (`expect`) permanecem nos arquivos de teste; o Page Object só executa ações.
