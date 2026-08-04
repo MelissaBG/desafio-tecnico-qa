@@ -1,8 +1,16 @@
 import { APIRequestContext } from '@playwright/test';
-export class GitHubService{
-    constructor(private request: APIRequestContext){}
+import { z } from 'zod';
 
-    async getUser(username: string){
-        return this.request.get(`/users/${username}`);
-    }
+export const GitHubUserSchema = z.object({
+  login: z.string(),
+  id: z.number(),
+  public_repos: z.number(),
+});
+
+export class GitHubService {
+  constructor(private request: APIRequestContext) {}
+
+  async getUser(username: string) {
+    return this.request.get(`/users/${username}`);
+  }
 }
