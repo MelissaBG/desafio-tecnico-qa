@@ -73,6 +73,7 @@ tests/
 │   ├── add-tasks.spec.ts        # W1 — adicionar tarefas e validar contador
 │   └── complete-filter.spec.ts  # W2 — concluir tarefa e validar filtros
 └── api/
+    ├── github-service.ts        # Service Layer com as chamadas à API do GitHub
     ├── user-valid.spec.ts       # A1 — GET /users/{username} existente (200)
     └── user-invalid.spec.ts     # A2 — GET /users/{username} inexistente (404)
 
@@ -100,10 +101,10 @@ Marca uma tarefa como concluída e valida que ela aparece no filtro *Completed* 
 
 ## Decisões tomadas
 
+
 - **`baseURL` separado por `project`**: o `playwright.config.ts` define dois projects (`web` e `api`), cada um com seu próprio `baseURL` e `testDir`, já que web e API têm domínios e propósitos diferentes. Isso permite rodar cada suíte isoladamente (`--project=web` / `--project=api`) sem misturar configurações.
 - **Locators por papel/atributo semântico**: os testes priorizam `getByPlaceholder`, `getByRole` e `getByTestId` em vez de seletores CSS, seguindo a recomendação do próprio Playwright de refletir como um usuário real identifica os elementos.
 - **`page.goto('')` em vez de `page.goto('/')`**: como o `baseURL` do TodoMVC inclui um subcaminho com hash routing (`/todomvc/#/`), usar `'/'` faria o Playwright navegar para a raiz do domínio, ignorando esse subcaminho. String vazia preserva o `baseURL` completo.
 - **Validação de contrato, não de snapshot**: no teste de usuário válido, os campos do corpo são validados com `toHaveProperty` (existência do campo), não com `toEqual` (valor exato), já que dados como `public_repos` podem mudar com o tempo sem que isso represente uma quebra real da API.
 - **Sem autenticação na API do GitHub**: os testes usam a API pública sem token, conforme indicado no desafio. Isso está sujeito ao limite de 60 requisições/hora por IP.
 - **Page Object para os testes web**: a interação com o TodoMVC (adicionar tarefa, marcar como concluída, filtrar) foi extraída para a classe `TodoPage` (`tests/web/todo-page.ts`). Os arquivos `.spec.ts` chamam métodos de negócio (`addTodo`, `completeTodo`, `filterBy`) em vez de repetir locators e ações de baixo nível — isso elimina duplicação entre W1 e W2 e centraliza qualquer mudança futura na estrutura da página em um único lugar. As asserções (`expect`) permanecem nos arquivos de teste; o Page Object só executa ações.
-- **Trace habilitado em `on-first-retry`**: o `playwright.config.ts` define `trace: 'on-first-retry'` no `use` compartilhado entre os projects. Assim, o trace (gravação navegável de cada ação, DOM, rede e console) só é capturado quando um teste falha e é tentado novamente — o que acontece no CI, onde `retries: 2` está configurado. Isso evita o custo de gravar trace em toda execução local, mas garante que uma falha no CI seja totalmente investigável a partir do artifact `playwright-report` publicado pelo workflow, sem precisar reproduzir o problema manualmente.
