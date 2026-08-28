@@ -7,6 +7,7 @@ Automação de 2 fluxos Web (TodoMVC) e 2 fluxos de API (GitHub REST), usando **
 - [Playwright Test](https://playwright.dev/) — test runner e cliente HTTP/browser
 - TypeScript
 - Node.js
+- [Zod](https://zod.dev/) — validação de schema/contrato das respostas de API
 
 ## Pré-requisitos
 
@@ -108,3 +109,6 @@ Marca uma tarefa como concluída e valida que ela aparece no filtro *Completed* 
 - **Validação de contrato, não de snapshot**: no teste de usuário válido, os campos do corpo são validados com `toHaveProperty` (existência do campo), não com `toEqual` (valor exato), já que dados como `public_repos` podem mudar com o tempo sem que isso represente uma quebra real da API.
 - **Sem autenticação na API do GitHub**: os testes usam a API pública sem token, conforme indicado no desafio. Isso está sujeito ao limite de 60 requisições/hora por IP.
 - **Page Object para os testes web**: a interação com o TodoMVC (adicionar tarefa, marcar como concluída, filtrar) foi extraída para a classe `TodoPage` (`tests/web/todo-page.ts`). Os arquivos `.spec.ts` chamam métodos de negócio (`addTodo`, `completeTodo`, `filterBy`) em vez de repetir locators e ações de baixo nível — isso elimina duplicação entre W1 e W2 e centraliza qualquer mudança futura na estrutura da página em um único lugar. As asserções (`expect`) permanecem nos arquivos de teste; o Page Object só executa ações.
+- **Service Layer para os testes de API**: seguindo o mesmo princípio do Page Object, a classe `GitHubService` (`tests/api/github-service.ts`) encapsula a chamada HTTP (`GET /users/{username}`) atrás de um método de negócio (`getUser`). Os specs não conhecem o endpoint diretamente — apenas pedem "o usuário X" e validam a resposta. Isso centraliza qualquer mudança de rota, header ou autenticação futura em um único lugar, em vez de espalhada por cada arquivo de teste.
+- **Validação de contrato com Zod**: além de checar o status HTTP, o teste de usuário válido valida o corpo da resposta contra um schema (`GitHubUserSchema`, definido junto ao `GitHubService`) usando `GitHubUserSchema.parse(body)`. Diferente de `toHaveProperty`, que só confirma a existência de uma chave, o `.parse()` valida o **tipo** de cada campo e lança erro se algo não bater — por exemplo, se `id` deixasse de ser `number`. Isso torna o teste sensível a quebras de contrato reais da API, não só à ausência de campos.
+- **Trace habilitado em `on-first-retry`**: o `playwright.config.ts` define `trace: 'on-first-retry'` no `use` compartilhado entre os projects. Assim, o trace (gravação navegável de cada ação, DOM, rede e console) só é capturado quando um teste falha e é tentado novamente — o que acontece no CI, onde `retries: 2` está configurado. Isso evita o custo de gravar trace em toda execução local, mas garante que uma falha no CI seja totalmente investigável a partir do artifact `playwright-report` publicado pelo workflow, sem precisar reproduzir o problema manualmente.
