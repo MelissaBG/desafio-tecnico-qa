@@ -7,6 +7,8 @@ Automação de 2 fluxos Web (TodoMVC) e 2 fluxos de API (GitHub REST), usando **
 - [Playwright Test](https://playwright.dev/) — test runner e cliente HTTP/browser
 - TypeScript
 - [Zod](https://zod.dev/) — validação de schema/contrato das respostas de API
+- ESLint + Prettier — padronização e qualidade de código
+- Husky — hook de pre-commit
 - Node.js
 
 ## Pré-requisitos
@@ -65,6 +67,22 @@ Após rodar os testes, é possível visualizar o relatório HTML com o detalhame
 npx playwright show-report
 ```
 
+## Qualidade de código
+
+Rodar o linter:
+
+```bash
+npm run lint
+```
+
+Verificar tipos do TypeScript sem gerar arquivos:
+
+```bash
+npm run typecheck
+```
+
+Essas duas verificações também rodam automaticamente antes de cada commit, via hook de `pre-commit` (Husky).
+
 ## Estrutura do projeto
 
 ```
@@ -113,3 +131,4 @@ Marca uma tarefa como concluída e valida que ela aparece no filtro *Completed* 
 - **Validação de contrato com Zod**: além de checar o status HTTP, o teste de usuário válido valida o corpo da resposta contra um schema (`GitHubUserSchema`, definido junto ao `GitHubService`) usando `GitHubUserSchema.parse(body)`. Diferente de `toHaveProperty`, que só confirma a existência de uma chave, o `.parse()` valida o **tipo** de cada campo e lança erro se algo não bater — por exemplo, se `id` deixasse de ser `number`. Isso torna o teste sensível a quebras de contrato reais da API, não só à ausência de campos.
 - **Trace habilitado em `on-first-retry`**: o `playwright.config.ts` define `trace: 'on-first-retry'` no `use` compartilhado entre os projects. Assim, o trace (gravação navegável de cada ação, DOM, rede e console) só é capturado quando um teste falha e é tentado novamente — o que acontece no CI, onde `retries: 2` está configurado. Isso evita o custo de gravar trace em toda execução local, mas garante que uma falha no CI seja totalmente investigável a partir do artifact `playwright-report` publicado pelo workflow, sem precisar reproduzir o problema manualmente.
 - **Fixtures customizadas com `test.extend`**: em vez de cada spec instanciar manualmente `TodoPage`/`GitHubService` a partir das fixtures nativas (`page`/`request`), um `test` estendido (`tests/fixtures.ts`) já entrega `todoPage` e `githubService` prontos para uso — `todoPage` inclusive já navegado (`goto()` já executado). Isso elimina a repetição do "ritual de preparação" em cada arquivo de teste e centraliza, em um único lugar, como cada dependência é construída, seguindo o mesmo princípio de abstração do Page Object e do Service Layer.
+- **ESLint, Prettier e Husky**: o projeto usa Prettier para formatação automática (aspas simples, indentação de 2 espaços) e ESLint com regras recomendadas de TypeScript para detectar problemas como imports não utilizados. Um hook de `pre-commit` (Husky) roda `npm run lint` e `npm run typecheck` (`tsc --noEmit`) automaticamente antes de cada commit, bloqueando o commit se algo falhar. Isso resolve duas lacunas: garante que `strict: true` do TypeScript seja de fato verificado (antes, nada no projeto rodava `tsc`), e elimina inconsistências de formatação entre arquivos escritos em momentos diferentes.
