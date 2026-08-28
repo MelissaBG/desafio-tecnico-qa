@@ -1,10 +1,7 @@
-import { test, expect } from '@playwright/test';
-import { TodoPage } from './todo-page';
+import { test, expect } from '../fixtures';
+import { TodoPage } from './todo-page'; // ainda precisa? Vamos ver
 
-test('adiciona duas tarefas e valida contador', async ({ page }) => {
-  const todoPage = new TodoPage(page);
-  await todoPage.goto();
-
+test('adiciona duas tarefas e valida contador', async ({ todoPage }) => {
   await todoPage.addTodo('Comprar leite');
   await todoPage.addTodo('Estudar Playwright');
 
