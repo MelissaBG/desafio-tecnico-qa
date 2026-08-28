@@ -91,7 +91,7 @@ tsconfig.json
 Adiciona duas tarefas e valida que ambas aparecem na lista e que o contador "items left" reflete a quantidade correta.
 
 **W2 — Concluir e filtrar**
-Marca uma tarefa como concluída e valida que ela aparece no filtro *Completed* e não aparece no filtro *Active*.
+Marca uma tarefa como concluída e valida que ela aparece no filtro _Completed_ e não aparece no filtro _Active_.
 
 ### API — GitHub REST
 
@@ -113,3 +113,4 @@ Marca uma tarefa como concluída e valida que ela aparece no filtro *Completed* 
 - **Validação de contrato com Zod**: além de checar o status HTTP, o teste de usuário válido valida o corpo da resposta contra um schema (`GitHubUserSchema`, definido junto ao `GitHubService`) usando `GitHubUserSchema.parse(body)`. Diferente de `toHaveProperty`, que só confirma a existência de uma chave, o `.parse()` valida o **tipo** de cada campo e lança erro se algo não bater — por exemplo, se `id` deixasse de ser `number`. Isso torna o teste sensível a quebras de contrato reais da API, não só à ausência de campos.
 - **Trace habilitado em `on-first-retry`**: o `playwright.config.ts` define `trace: 'on-first-retry'` no `use` compartilhado entre os projects. Assim, o trace (gravação navegável de cada ação, DOM, rede e console) só é capturado quando um teste falha e é tentado novamente — o que acontece no CI, onde `retries: 2` está configurado. Isso evita o custo de gravar trace em toda execução local, mas garante que uma falha no CI seja totalmente investigável a partir do artifact `playwright-report` publicado pelo workflow, sem precisar reproduzir o problema manualmente.
 - **Fixtures customizadas com `test.extend`**: em vez de cada spec instanciar manualmente `TodoPage`/`GitHubService` a partir das fixtures nativas (`page`/`request`), um `test` estendido (`tests/fixtures.ts`) já entrega `todoPage` e `githubService` prontos para uso — `todoPage` inclusive já navegado (`goto()` já executado). Isso elimina a repetição do "ritual de preparação" em cada arquivo de teste e centraliza, em um único lugar, como cada dependência é construída, seguindo o mesmo princípio de abstração do Page Object e do Service Layer.
+
